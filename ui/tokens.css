@@ -1,0 +1,22 @@
+/* Дизайн-токены. Сетка spacing — 8 pt. Акцент: 6 системных цветов Apple. */
+:root {
+  --bg: #f2f2f7; --surf: #ffffff; --ink: #1c1c1e; --mute: #5f6368; --line: #d1d1d6;
+  --ok: #0062cc; --okt: #ffffff; --skip: #8a5a00; --skipbg: #fbefd5;
+  --s1: 8px; --s2: 16px; --s3: 24px; --r-card: 16px; --r-ctl: 12px;
+  --card-h: 76px;
+}
+:root[data-density="compact"] { --card-h: 56px; }
+:root[data-accent="green"] { --ok: #1e7b34; }
+:root[data-accent="orange"] { --ok: #b25000; }
+:root[data-accent="purple"] { --ok: #8944ab; }
+:root[data-accent="pink"] { --ok: #d30f45; }
+:root[data-accent="teal"] { --ok: #0a7a8f; }
+:root[data-theme="dark"] {
+  --bg: #000000; --surf: #1c1c1e; --ink: #f2f2f7; --mute: #a1a1a6; --line: #3a3a3c;
+  --ok: #0a84ff; --okt: #000000; --skip: #ffcc66; --skipbg: #33290f;
+}
+:root[data-theme="dark"][data-accent="green"] { --ok: #30d158; }
+:root[data-theme="dark"][data-accent="orange"] { --ok: #ff9f0a; }
+:root[data-theme="dark"][data-accent="purple"] { --ok: #bf5af2; }
+:root[data-theme="dark"][data-accent="pink"] { --ok: #ff375f; }
+:root[data-theme="dark"][data-accent="teal"] { --ok: #40c8e0; }
