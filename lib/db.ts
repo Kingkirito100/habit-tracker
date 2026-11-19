@@ -2,6 +2,13 @@ import Dexie, { type Table } from "dexie";
 
 export type Status = "done" | "skipped" | "pending";
 
+/** Частота: daily — каждый день; days — выбранные дни недели (0=Пн … 6=Вс); weekly/monthly — N раз за неделю/месяц. */
+export interface Freq {
+  kind: "daily" | "days" | "weekly" | "monthly";
+  times: number;
+  days: number[];
+}
+
 export interface Habit {
   id: number;
   name: string;
@@ -12,6 +19,8 @@ export interface Habit {
   order: number;
   archived: boolean;
   reminderTime?: string; // "HH:MM"
+  freq?: Freq; // нет поля = каждый день
+  color?: string; // ключ акцента; нет = цвет темы
   createdAt: string; // YYYY-MM-DD
 }
 

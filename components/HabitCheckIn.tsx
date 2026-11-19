@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { Check, Minus, Plus } from "lucide-react";
 import { setEntry, type Habit, type Status } from "@/lib/db";
-import { plural } from "@/lib/dates";
-import { MAX_SKIPS_PER_WEEK, skipsInWeek, streak, type EntryMap } from "@/lib/streak";
+import { MAX_SKIPS_PER_WEEK, isDue, periodProgress, skipsInWeek, streak, type EntryMap } from "@/lib/streak";
+import { getFreq, streakWord } from "@/lib/freq";
 import { HabitIcon } from "./HabitIcon";
 
 /** Один тап — отметка. Optimistic update: состояние меняется мгновенно, запись в IndexedDB идёт следом. */
@@ -19,6 +19,9 @@ export function HabitCheckIn({ habit, map, date, today, onFirstCheckIn }: { habi
   const future = date > today;
   const isCount = habit.type === "count";
   const k = streak(habit, map, today);
+  const due = isDue(habit, map, date);
+  const prog = periodProgress(habit, map, date);
+  const progText = prog ? `${prog.done} из ${prog.goal} на этой ${prog.period}` : null;
 
   const write = (s: Status | null, v?: number) => {
     setOpt({ status: s, value: v });
@@ -43,12 +46,14 @@ export function HabitCheckIn({ habit, map, date, today, onFirstCheckIn }: { habi
   const sub =
     status === "skipped" ? "Пропуск — серия не прервётся"
     : isCount ? `${value ?? 0} из ${habit.target} ${habit.unit ?? ""}`
-    : status === "done" ? "Выполнено"
+    : status === "done" ? (progText ?? "Выполнено")
     : future ? "Ещё не наступило"
-    : date === today && k.current ? `Серия: ${k.current} ${plural(k.current)}` : "Не отмечено";
+    : !due ? (getFreq(habit).kind === "days" ? "По расписанию сегодня выходной" : `Цель выполнена: ${progText}`)
+    : progText ? progText
+    : date === today && k.current ? `Серия: ${k.current} ${streakWord(k.current, k.unit)}` : "Не отмечено";
 
   return (
-    <div className="mb-2.5">
+    <div className={`mb-2.5 ${!due && !status ? "opacity-70" : ""}`}>
       <div className="flex gap-2">
         <button className={`tap ${cls} ${pulse ? "pulse" : ""}`} disabled={future} aria-pressed={status === "done"} onClick={toggle}>
           <span className="box">{status === "done" ? <Check size={20} strokeWidth={3} aria-hidden /> : status === "skipped" ? <Minus size={20} strokeWidth={3} aria-hidden /> : null}</span>

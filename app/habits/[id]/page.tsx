@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { db, deleteHabit, setEntry } from "@/lib/db";
 import { useData, useToday } from "@/lib/hooks";
 import { addDays, ds, pd, weekStart } from "@/lib/dates";
-import { MAX_SKIPS_PER_WEEK, cellState, skipsInWeek, streak } from "@/lib/streak";
+import { MAX_SKIPS_PER_WEEK, cellState, periodProgress, skipsInWeek, streak } from "@/lib/streak";
+import { freqLabel, getFreq, nextMilestone, streakWord } from "@/lib/freq";
 import { HabitGrid, Legend } from "@/components/HabitGrid";
 import { StreakBadge } from "@/components/StreakBadge";
 import { HabitForm } from "@/components/HabitForm";
@@ -26,10 +27,12 @@ export default function HabitDetail() {
     const c = cellState(h, map, d, today);
     setEntry(id, d, c === "done" ? "skipped" : c === "skipped" ? null : "done");
   };
+  const prog = periodProgress(h, map, today);
+  const ms = nextMilestone(k.current, k.unit);
   return (
-    <>
+    <div data-accent={h.color}>
       <h1>{h.name}</h1>
-      <div className="panel"><StreakBadge current={k.current} best={k.best} /></div>
+      <div className="panel"><StreakBadge current={k.current} best={k.best} unit={k.unit} /><p className="mb-0 mt-1.5 text-mute">{freqLabel(getFreq(h))}{prog ? ` · ${prog.done} из ${prog.goal} на этой ${prog.period}` : ""}{ms ? ` · до ${ms} ${streakWord(ms, k.unit)} осталось ${ms - k.current}` : ""}</p></div>
       {edit ? (
         <HabitForm initial={h} submitLabel="Сохранить" onSubmit={async (d) => { await db.habits.update(id, d); setEdit(false); }} />
       ) : (
@@ -47,6 +50,6 @@ export default function HabitDetail() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

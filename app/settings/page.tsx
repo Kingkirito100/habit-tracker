@@ -7,9 +7,9 @@ import { updateSettings, useSettings, type Settings } from "@/lib/settings";
 import { enableNotifications, notifState, type NotifState } from "@/lib/notifications";
 import { Segmented } from "@/components/Segmented";
 
-const ACCENTS: [Settings["accent"], string, string][] = [
-  ["blue", "Синий", "#0a84ff"], ["green", "Зелёный", "#1e7b34"], ["orange", "Оранжевый", "#b25000"],
-  ["purple", "Фиолетовый", "#8944ab"], ["pink", "Розовый", "#d30f45"], ["teal", "Бирюзовый", "#0a7a8f"],
+const ACCENTS: [Settings["accent"], string][] = [
+  ["blue", "Синий"], ["green", "Зелёный"], ["orange", "Оранжевый"],
+  ["purple", "Фиолетовый"], ["pink", "Розовый"], ["teal", "Бирюзовый"],
 ];
 
 export default function SettingsPage() {
@@ -30,14 +30,19 @@ export default function SettingsPage() {
   return (
     <>
       <h1>Настройки</h1>
+      <h2 className="mb-2">Стиль</h2>
+      <Segmented<Settings["style"]> label="Стиль" value={s.style} onChange={(style) => updateSettings({ style })} items={[["classic", "Классика"], ["glass", "Стекло"], ["neon", "Неон"]]} />
+      <p className="-mt-1 mb-3 text-[15px] text-mute">«Стекло» — полупрозрачные слои с размытием в духе Liquid Glass. «Неон» — свечение и яркие цвета, всегда на тёмном фоне.</p>
       <h2 className="mb-2">Тема</h2>
       <Segmented<Settings["theme"]> label="Тема" value={s.theme} onChange={(theme) => updateSettings({ theme })} items={[["system", "Система"], ["light", "Светлая"], ["dark", "Тёмная"]]} />
       <h2 className="mb-2">Акцент</h2>
       <div className="sw" role="group" aria-label="Акцентный цвет">
-        {ACCENTS.map(([k, name, c]) => (
-          <button key={k} style={{ background: c }} aria-label={name} aria-pressed={s.accent === k} onClick={() => updateSettings({ accent: k })}>{s.accent === k && <Check size={22} strokeWidth={3} aria-hidden />}</button>
+        {ACCENTS.map(([k, name]) => (
+          <button key={k} data-accent={k} className="sw-btn" aria-label={name} aria-pressed={s.accent === k} onClick={() => updateSettings({ accent: k })}>{s.accent === k && <Check size={22} strokeWidth={3} aria-hidden />}</button>
         ))}
       </div>
+      <h2 className="mb-2">Главный экран</h2>
+      <Segmented<Settings["layout"]> label="Главный экран" value={s.layout} onChange={(layout) => updateSettings({ layout })} items={[["calendar", "С календарями"], ["cards", "Только карточки"]]} />
       <h2 className="mb-2">Плотность списка</h2>
       <Segmented<Settings["density"]> label="Плотность" value={s.density} onChange={(density) => updateSettings({ density })} items={[["comfortable", "Комфортная"], ["compact", "Компактная"]]} />
 

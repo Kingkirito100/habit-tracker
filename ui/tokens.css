@@ -1,22 +1,48 @@
-/* Дизайн-токены. Сетка spacing — 8 pt. Акцент: 6 системных цветов Apple. */
+/* Дизайн-токены. Сетка spacing — 8 pt. Акцент: 6 системных цветов; стили: classic / glass (Liquid Glass) / neon.
+   [data-accent] можно ставить на любой элемент — так привычка получает свой цвет. */
 :root {
   --bg: #f2f2f7; --surf: #ffffff; --ink: #1c1c1e; --mute: #5f6368; --line: #d1d1d6;
   --ok: #0062cc; --okt: #ffffff; --skip: #8a5a00; --skipbg: #fbefd5;
-  --s1: 8px; --s2: 16px; --s3: 24px; --r-card: 16px; --r-ctl: 12px;
-  --card-h: 76px;
+  --s1: 8px; --s2: 16px; --s3: 24px; --r-card: 16px; --r-ctl: 12px; --card-h: 76px; --bg-img: none;
 }
 :root[data-density="compact"] { --card-h: 56px; }
-:root[data-accent="green"] { --ok: #1e7b34; }
-:root[data-accent="orange"] { --ok: #b25000; }
-:root[data-accent="purple"] { --ok: #8944ab; }
-:root[data-accent="pink"] { --ok: #d30f45; }
-:root[data-accent="teal"] { --ok: #0a7a8f; }
+[data-accent="blue"] { --ok: #0062cc; }
+[data-accent="green"] { --ok: #1e7b34; }
+[data-accent="orange"] { --ok: #b25000; }
+[data-accent="purple"] { --ok: #8944ab; }
+[data-accent="pink"] { --ok: #d30f45; }
+[data-accent="teal"] { --ok: #0a7a8f; }
+
 :root[data-theme="dark"] {
   --bg: #000000; --surf: #1c1c1e; --ink: #f2f2f7; --mute: #a1a1a6; --line: #3a3a3c;
   --ok: #0a84ff; --okt: #000000; --skip: #ffcc66; --skipbg: #33290f;
 }
-:root[data-theme="dark"][data-accent="green"] { --ok: #30d158; }
-:root[data-theme="dark"][data-accent="orange"] { --ok: #ff9f0a; }
-:root[data-theme="dark"][data-accent="purple"] { --ok: #bf5af2; }
-:root[data-theme="dark"][data-accent="pink"] { --ok: #ff375f; }
-:root[data-theme="dark"][data-accent="teal"] { --ok: #40c8e0; }
+:root[data-theme="dark"] [data-accent="blue"], :root[data-theme="dark"][data-accent="blue"] { --ok: #0a84ff; }
+:root[data-theme="dark"] [data-accent="green"], :root[data-theme="dark"][data-accent="green"] { --ok: #30d158; }
+:root[data-theme="dark"] [data-accent="orange"], :root[data-theme="dark"][data-accent="orange"] { --ok: #ff9f0a; }
+:root[data-theme="dark"] [data-accent="purple"], :root[data-theme="dark"][data-accent="purple"] { --ok: #bf5af2; }
+:root[data-theme="dark"] [data-accent="pink"], :root[data-theme="dark"][data-accent="pink"] { --ok: #ff375f; }
+:root[data-theme="dark"] [data-accent="teal"], :root[data-theme="dark"][data-accent="teal"] { --ok: #40c8e0; }
+
+/* Стекло (Liquid Glass): полупрозрачные поверхности, размытие, крупные скругления */
+:root[data-style="glass"] {
+  --surf: rgba(255,255,255,.6); --line: rgba(60,60,67,.22); --mute: #474d5b; --r-card: 24px; --r-ctl: 16px;
+  --edge: rgba(255,255,255,.7);
+  --bg-img: radial-gradient(60% 40% at 10% 0%, rgba(10,132,255,.30), transparent 70%), radial-gradient(50% 40% at 100% 25%, rgba(255,45,120,.20), transparent 70%), radial-gradient(60% 45% at 40% 100%, rgba(48,209,88,.24), transparent 70%);
+}
+:root[data-style="glass"][data-theme="dark"] {
+  --bg: #05060c; --surf: rgba(44,44,58,.55); --line: rgba(255,255,255,.18); --mute: #b9bdcb; --edge: rgba(255,255,255,.22);
+  --bg-img: radial-gradient(60% 40% at 10% 0%, rgba(10,132,255,.38), transparent 70%), radial-gradient(50% 40% at 100% 25%, rgba(191,90,242,.30), transparent 70%), radial-gradient(60% 45% at 40% 100%, rgba(48,209,88,.20), transparent 70%);
+}
+
+/* Неон: всегда тёмный, яркие акценты и свечение */
+:root[data-style="neon"] {
+  --bg: #07060f; --surf: #110f1f; --ink: #f4f2ff; --mute: #b0abd0; --line: #2d284c; --okt: #05030d; --skip: #ffb454; --skipbg: #2a1d08;
+  --bg-img: radial-gradient(70% 35% at 50% 0%, color-mix(in srgb, var(--ok) 24%, transparent), transparent 70%);
+}
+:root[data-style="neon"] [data-accent="blue"], :root[data-style="neon"][data-accent="blue"] { --ok: #00e5ff; }
+:root[data-style="neon"] [data-accent="green"], :root[data-style="neon"][data-accent="green"] { --ok: #b6ff00; }
+:root[data-style="neon"] [data-accent="orange"], :root[data-style="neon"][data-accent="orange"] { --ok: #ff8a00; }
+:root[data-style="neon"] [data-accent="purple"], :root[data-style="neon"][data-accent="purple"] { --ok: #9d6bff; }
+:root[data-style="neon"] [data-accent="pink"], :root[data-style="neon"][data-accent="pink"] { --ok: #ff2bd6; }
+:root[data-style="neon"] [data-accent="teal"], :root[data-style="neon"][data-accent="teal"] { --ok: #00ffa3; }

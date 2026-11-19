@@ -64,3 +64,26 @@ h2 { font-size: 20px; font-weight: 600; margin: 0; }
 .pulse { animation: p .25s ease; }
 @keyframes p { 50% { transform: scale(.97); } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+
+body { background-image: var(--bg-img); background-attachment: fixed; }
+.c.o { opacity: .45; }
+.c.mini { min-height: 26px; border-width: 1.5px; border-radius: 8px; }
+.sw-btn { @apply grid place-items-center rounded-full bg-ok text-okt; width: 48px; height: 48px; }
+.sw-btn[aria-pressed="true"] { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+/* Стекло */
+:root[data-style="glass"] :is(.tap, .panel, .banner, .mon, .side, .btn, .field, .nav .a, .nav .td, .seg, .tabs, .fab) {
+  -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: inset 0 0 0 1px var(--edge), inset 0 1px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.08);
+}
+:root[data-style="glass"] .tabs { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 30px; padding-bottom: 6px; }
+:root[data-style="glass"] .fab { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+:root[data-style="glass"] .seg button[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--edge), 0 2px 8px rgba(0,0,0,.18); }
+
+/* Неон */
+:root[data-style="neon"] :is(.tap.d, .c.d, .fab, .btn.pri, .seg button[aria-pressed="true"], .mon .bar i, .sw-btn[aria-pressed="true"]) {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--ok) 65%, transparent), 0 0 2px var(--ok);
+}
+:root[data-style="neon"] :is(.tap:not(.d), .panel, .banner, .mon, .side) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 28%, var(--line)); }
+:root[data-style="neon"] h1 { text-shadow: 0 0 22px color-mix(in srgb, var(--ok) 65%, transparent); }
+:root[data-style="neon"] .tabs a[aria-current="page"] { text-shadow: 0 0 12px var(--ok); }

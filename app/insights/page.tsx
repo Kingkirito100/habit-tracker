@@ -1,6 +1,7 @@
 "use client";
 import { useData, useToday } from "@/lib/hooks";
-import { addDays, ds, pd, plural, WEEKDAYS_LONG } from "@/lib/dates";
+import { addDays, ds, pd, WEEKDAYS_LONG } from "@/lib/dates";
+import { getFreq, streakWord } from "@/lib/freq";
 import { cellState, streak } from "@/lib/streak";
 import { HabitGrid, Legend } from "@/components/HabitGrid";
 import { StreakBadge } from "@/components/StreakBadge";
@@ -30,14 +31,14 @@ export default function Insights() {
           if (c === "done") { dn++; el++; } else if (c === "missed") el++;
         }
         return (
-          <div className="panel" key={h.id}>
-            <div className="mb-2 flex items-center justify-between gap-2"><h2>{h.name}</h2><StreakBadge current={k.current} /></div>
+          <div className="panel" key={h.id} data-accent={h.color}>
+            <div className="mb-2 flex items-center justify-between gap-2"><h2>{h.name}</h2><StreakBadge current={k.current} unit={k.unit} /></div>
             <HabitGrid habit={h} map={map} days={week} today={today} />
             <p className="mb-0 mt-2.5">
               {doneWeek} из 7 дней за последнюю неделю.{" "}
               {total >= 3 ? `Лучший день — ${WEEKDAYS_LONG[best]}. ` : "Данных пока мало — продолжай отмечать. "}
-              {el > 0 && `За 30 дней — ${Math.round((100 * dn) / el)}%. `}
-              Самая длинная серия — {k.best} {plural(k.best)}.
+              {getFreq(h).kind === "weekly" || getFreq(h).kind === "monthly" ? `За 30 дней отмечено ${dn} раз. ` : el > 0 ? `За 30 дней — ${Math.round((100 * dn) / el)}%. ` : ""}Всего выполнено: {total}. 
+              Самая длинная серия — {k.best} {streakWord(k.best, k.unit)}.
             </p>
           </div>
         );

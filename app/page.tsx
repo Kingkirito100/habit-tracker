@@ -6,10 +6,12 @@ import { useData, useToday } from "@/lib/hooks";
 import { updateSettings, useSettings } from "@/lib/settings";
 import { setEntry } from "@/lib/db";
 import { countDone, monthDays, weekDays, yearData } from "@/lib/views";
-import { cellState } from "@/lib/streak";
+import { cellState, isDue, streak } from "@/lib/streak";
 import { pd } from "@/lib/dates";
 import { HabitCheckIn } from "@/components/HabitCheckIn";
 import { HabitGrid, Legend } from "@/components/HabitGrid";
+import { HabitCalendar } from "@/components/HabitCalendar";
+import { DayRing } from "@/components/DayRing";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { NotificationPermission } from "@/components/NotificationPermission";
 import { WEEKDAYS_SHORT, plural } from "@/lib/dates";
@@ -64,12 +66,23 @@ export default function TodayPage() {
       <NotificationPermission />
       <ViewSwitcher mode={mode} anchor={anchor} today={today} onMode={(m) => updateSettings({ mode: m })} onAnchor={setAnchor} />
 
-      {mode === "day" && (
-        <>
-          {active.map((h) => <HabitCheckIn key={h.id} habit={h} map={maps[h.id]} date={anchor} today={today} onFirstCheckIn={onFirst} />)}
-          <p className="text-[15px] text-mute">Нажми на карточку, чтобы отметить. Пропуск — до 2 раз в неделю, серия не сгорает.</p>
-        </>
-      )}
+      {mode === "day" && (() => {
+        const ids = new Set(active.filter((h) => isDue(h, maps[h.id], anchor)).map((h) => h.id));
+        const done = active.filter((h) => maps[h.id]?.[anchor]?.status === "done");
+        done.forEach((h) => ids.add(h.id));
+        return (
+          <>
+            <DayRing done={done.length} total={ids.size} />
+            {active.map((h) => (
+              <div key={h.id} data-accent={h.color} className="mb-1">
+                <HabitCheckIn habit={h} map={maps[h.id]} date={anchor} today={today} onFirstCheckIn={onFirst} />
+                {s.layout === "calendar" && <HabitCalendar habit={h} map={maps[h.id]} today={today} />}
+              </div>
+            ))}
+            <p className="text-[15px] text-mute">Нажми на карточку, чтобы отметить. Пропуск — до 2 раз в неделю, серия не сгорает. Нажми на календарь, чтобы открыть подробности.</p>
+          </>
+        );
+      })()}
 
       {mode === "week" && (
         <>

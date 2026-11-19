@@ -16,7 +16,7 @@ const config: Config = {
         skip: "var(--skip)",
         skipbg: "var(--skipbg)",
       },
-      borderRadius: { card: "16px", ctl: "12px" },
+      borderRadius: { card: "var(--r-card)", ctl: "var(--r-ctl)" },
     },
   },
   plugins: [],
