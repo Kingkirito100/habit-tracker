@@ -5,6 +5,8 @@ import { getFreq, streakWord } from "@/lib/freq";
 import { cellState, streak } from "@/lib/streak";
 import { HabitGrid, Legend } from "@/components/HabitGrid";
 import { StreakBadge } from "@/components/StreakBadge";
+import { Achievements } from "@/components/Achievements";
+import { WeeklySummary } from "@/components/WeeklySummary";
 
 export default function Insights() {
   const data = useData();
@@ -14,6 +16,8 @@ export default function Insights() {
   return (
     <>
       <h1>Инсайты</h1>
+      <WeeklySummary habits={data.active} maps={data.maps} today={today} />
+      <Achievements habits={data.habits} maps={data.maps} today={today} />
       {data.active.map((h) => {
         const map = data.maps[h.id];
         const week = Array.from({ length: 7 }, (_, i) => ds(addDays(pd(today), i - 6)));

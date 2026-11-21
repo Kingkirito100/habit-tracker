@@ -9,6 +9,11 @@
   "orientation": "portrait",
   "background_color": "#f2f2f7",
   "theme_color": "#f2f2f7",
+  "shortcuts": [
+    {"name": "Быстрая отметка", "url": "/quick", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "Новая привычка", "url": "/habits/new", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "Итоги недели", "url": "/insights", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192"}]}
+  ],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

@@ -87,3 +87,52 @@ body { background-image: var(--bg-img); background-attachment: fixed; }
 :root[data-style="neon"] :is(.tap:not(.d), .panel, .banner, .mon, .side) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 28%, var(--line)); }
 :root[data-style="neon"] h1 { text-shadow: 0 0 22px color-mix(in srgb, var(--ok) 65%, transparent); }
 :root[data-style="neon"] .tabs a[aria-current="page"] { text-shadow: 0 0 12px var(--ok); }
+
+.day-hero {
+  display: grid;
+  gap: 12px;
+  margin-block: 4px 20px;
+  padding: clamp(14px, 4vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--ok) 14%, transparent), transparent 80%), var(--surf);
+}
+.day-hero .panel { margin: 0; padding: 0; background: none; box-shadow: none; backdrop-filter: none; }
+.day-ring circle { transition: stroke-dashoffset .35s ease; }
+.day-celebration { display: flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 650; }
+.daily-card { margin-block-end: 10px; }
+.daily-card[data-priority="next"] .tap:not(.d):not(.s) {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+}
+.daily-card[data-priority="off"] .tap:not(:focus-visible) { opacity: .78; }
+.checkin-metadata { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-inline: 8px; }
+.checkin-metadata :is(a, button) { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; color: var(--mute); font-size: .875rem; }
+.checkin-metadata :is(a, button):hover { color: var(--ok); text-decoration: underline; }
+.checkin-meter { display: block; height: 4px; margin-top: 6px; max-width: 12rem; background: color-mix(in srgb, currentColor 20%, transparent); border-radius: 4px; overflow: hidden; }
+.checkin-meter i { display: block; height: 100%; background: currentColor; }
+.achievement-panel h2, .achievement-panel header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.achievement-panel header { justify-content: space-between; }
+.achievement-list > li { display: flex; align-items: flex-start; gap: 12px; padding-block: 12px; }
+.achievement-list > li + li { border-top: 1px solid var(--line); }
+.achievement-icon { flex: none; display: grid; place-items: center; width: 45px; height: 45px; border-radius: var(--r-ctl); color: var(--mute); background: var(--bg); }
+[data-earned="true"] .achievement-icon { background: var(--ok); color: var(--okt); }
+.achievement-habits { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .875rem; }
+.achievement-habits a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ok); text-decoration: underline; overflow-wrap: anywhere; }
+.preference-list label { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.preference-list label + label { border-top: 1px solid var(--line); }
+.preference-list input { width: 20px; height: 20px; accent-color: var(--ok); }
+:root[data-motion="off"] :is(.pulse, .skel) { animation: none; }
+:root[data-motion="off"] :is(.day-ring circle, .tap) { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.day-ring circle, .tap) { transition: none; }
+  .skel { animation: none; }
+}
+.week-navigation { display: flex; align-items: center; gap: 8px; color: var(--mute); font-size: .875rem; }
+.week-navigation button { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-ctl); background: var(--bg); color: var(--ink); }
+.week-navigation button:disabled { opacity: .4; cursor: default; }
+.week-rows li { padding-block: 9px; border-top: 1px solid var(--line); }
+.week-cells { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.week-cell { display: grid; place-items: center; min-height: 28px; border: 1px solid var(--line); border-radius: 7px; font-size: .75rem; color: var(--mute); }
+.week-cell[data-state="done"] { background: var(--ok); border-color: var(--ok); color: var(--okt); }
+.week-cell[data-state="skipped"] { background: var(--skipbg); border: 1px dashed var(--skip); color: var(--skip); }
+.week-cell[data-state="future"], .week-cell[data-state="off"] { border-style: dotted; }

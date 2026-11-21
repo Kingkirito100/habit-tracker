@@ -31,8 +31,7 @@ export default function SettingsPage() {
     <>
       <h1>Настройки</h1>
       <h2 className="mb-2">Стиль</h2>
-      <Segmented<Settings["style"]> label="Стиль" value={s.style} onChange={(style) => updateSettings({ style })} items={[["classic", "Классика"], ["glass", "Стекло"], ["neon", "Неон"]]} />
-      <p className="-mt-1 mb-3 text-[15px] text-mute">«Стекло» — полупрозрачные слои с размытием в духе Liquid Glass. «Неон» — свечение и яркие цвета, всегда на тёмном фоне.</p>
+      <Segmented<Settings["style"]> label="Стиль" value={s.style} onChange={(style) => updateSettings({ style })} items={[["classic", "Классика"], ["glass", "Стекло"], ["neon", "Неон"], ["paper", "Бумага"]]} />
       <h2 className="mb-2">Тема</h2>
       <Segmented<Settings["theme"]> label="Тема" value={s.theme} onChange={(theme) => updateSettings({ theme })} items={[["system", "Система"], ["light", "Светлая"], ["dark", "Тёмная"]]} />
       <h2 className="mb-2">Акцент</h2>
@@ -45,6 +44,11 @@ export default function SettingsPage() {
       <Segmented<Settings["layout"]> label="Главный экран" value={s.layout} onChange={(layout) => updateSettings({ layout })} items={[["calendar", "С календарями"], ["cards", "Только карточки"]]} />
       <h2 className="mb-2">Плотность списка</h2>
       <Segmented<Settings["density"]> label="Плотность" value={s.density} onChange={(density) => updateSettings({ density })} items={[["comfortable", "Комфортная"], ["compact", "Компактная"]]} />
+      <div className="panel preference-list">
+        <label><span>Сначала невыполненные</span><input type="checkbox" checked={s.unfinishedFirst} onChange={(e) => updateSettings({ unfinishedFirst: e.target.checked })} /></label>
+        <label><span>Анимация при отметке</span><input type="checkbox" checked={s.motion} onChange={(e) => updateSettings({ motion: e.target.checked })} /></label>
+        <label><span>Вибрация при отметке</span><input type="checkbox" checked={s.haptics} onChange={(e) => updateSettings({ haptics: e.target.checked })} /></label>
+      </div>
 
       <h2 className="mb-2 mt-2">Привычки</h2>
       <div className="panel">
@@ -62,11 +66,11 @@ export default function SettingsPage() {
 
       <h2 className="mb-2 mt-2">Напоминания</h2>
       <div className="panel">
-        <p className="mt-0">Время напоминания задаётся в настройках каждой привычки.</p>
+        <p className="mt-0">В каждой привычке можно задать несколько напоминаний, выбрать дни и написать свой текст.</p>
         {ns === "needs-install" && <p className="text-mute">На iPhone уведомления работают только из установленного приложения: нажми «Поделиться» → «На экран Домой», открой приложение с иконки и вернись сюда.</p>}
         {ns === "unsupported" && <p className="text-mute">Этот браузер не поддерживает уведомления.</p>}
         {ns === "denied" && <p className="text-mute">Уведомления запрещены в настройках браузера или телефона. Разрешите их там — и вернитесь сюда.</p>}
-        {ns === "granted" && <p className="text-mute">Уведомления включены. Пока приложение открыто, напоминания приходят локально; при закрытом — через Web Push, если подключён сервер (см. README).</p>}
+        {ns === "granted" && <p className="text-mute">Уведомления включены. Для локальных напоминаний оставь приложение открытым.</p>}
         {ns === "default" && <button className="btn pri" onClick={async () => { await enableNotifications(); setNs(notifState()); }}>Включить напоминания</button>}
       </div>
 

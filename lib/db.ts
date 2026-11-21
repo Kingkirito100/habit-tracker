@@ -9,6 +9,12 @@ export interface Freq {
   days: number[];
 }
 
+export interface HabitReminder {
+  time: string;
+  days: number[];
+  message?: string;
+}
+
 export interface Habit {
   id: number;
   name: string;
@@ -19,6 +25,7 @@ export interface Habit {
   order: number;
   archived: boolean;
   reminderTime?: string; // "HH:MM"
+  reminders?: HabitReminder[];
   freq?: Freq; // нет поля = каждый день
   color?: string; // ключ акцента; нет = цвет темы
   createdAt: string; // YYYY-MM-DD
@@ -48,16 +55,59 @@ class HabitDB extends Dexie {
 
 export const db = new HabitDB();
 
-/** Создаёт или обновляет запись; status=null и пустое value — удаляет запись. */
+function entryFor(habitId: number, date: string) {
+  return db.entries.where("[habitId+date]").equals([habitId, date]).first();
+}
+
 export async function setEntry(habitId: number, date: string, status: Status | null, value?: number) {
-  const ex = await db.entries.where("[habitId+date]").equals([habitId, date]).first();
-  if (status === null && !value) {
-    if (ex?.id) await db.entries.delete(ex.id);
-    return;
-  }
-  const rec: Entry = { habitId, date, status: status ?? "pending", value, updatedAt: Date.now() };
-  if (ex?.id) await db.entries.update(ex.id, rec);
-  else await db.entries.add(rec);
+  await db.transaction("rw", db.entries, async () => {
+    const previous = await entryFor(habitId, date);
+    if (status === null && !value && !previous?.note) {
+      if (previous?.id != null) await db.entries.delete(previous.id);
+      return;
+    }
+    await db.entries.put({ ...previous, habitId, date, status: status ?? "pending", value, updatedAt: Date.now() });
+  });
+}
+
+export async function setEntryNote(habitId: number, date: string, note: string) {
+  await db.transaction("rw", db.entries, async () => {
+    const previous = await entryFor(habitId, date);
+    const trimmed = note.trim();
+    if (!trimmed && (!previous || (previous.status === "pending" && !previous.value))) {
+      if (previous?.id != null) await db.entries.delete(previous.id);
+      return;
+    }
+    await db.entries.put({ habitId, date, status: "pending", ...previous, note: trimmed || undefined, updatedAt: Date.now() });
+  });
+}
+
+export async function completeHabits(habits: Habit[], date: string) {
+  return db.transaction("rw", db.entries, async () => {
+    const changes: { previous?: Entry; saved: Entry & { id: number } }[] = [];
+    for (const habit of habits) {
+      const previous = await entryFor(habit.id, date);
+      if (previous?.status === "done" || previous?.status === "skipped") continue;
+      const saved: Entry = {
+        ...previous, habitId: habit.id, date, status: "done",
+        value: habit.type === "count" ? Math.max(habit.target, previous?.value ?? 0) : undefined,
+        updatedAt: Date.now(),
+      };
+      const id = await db.entries.put(saved);
+      changes.push({ previous, saved: { ...saved, id } });
+    }
+    return async () => {
+      await db.transaction("rw", db.entries, async () => {
+        for (const { previous, saved } of changes) {
+          const current = await db.entries.get(saved.id);
+          if (!current || current.updatedAt !== saved.updatedAt || current.status !== saved.status
+            || current.value !== saved.value || current.note !== saved.note) continue;
+          if (previous) await db.entries.put({ ...previous, updatedAt: Date.now() });
+          else await db.entries.delete(saved.id);
+        }
+      });
+    };
+  });
 }
 
 export async function addHabit(h: Omit<Habit, "id" | "order" | "archived" | "createdAt">, createdAt: string) {

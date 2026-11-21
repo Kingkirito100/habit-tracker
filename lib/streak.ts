@@ -79,7 +79,7 @@ export function isDue(h: Habit, em: EntryMap | undefined, date: string) {
   const f = getFreq(h);
   if (f.kind === "daily") return true;
   if (f.kind === "days") return isScheduled(h, date);
-  if (em?.[date]?.status) return true;
+  if (em?.[date]?.status === "done" || em?.[date]?.status === "skipped") return true;
   const p = periodProgress(h, em, date)!;
   return p.done < p.goal;
 }

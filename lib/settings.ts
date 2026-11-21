@@ -6,12 +6,18 @@ export interface Settings {
   theme: "system" | "light" | "dark";
   accent: "blue" | "green" | "orange" | "purple" | "pink" | "teal";
   density: "comfortable" | "compact";
-  style: "classic" | "glass" | "neon";
+  style: "classic" | "glass" | "neon" | "paper";
   layout: "calendar" | "cards";
   mode: Mode;
   sel: number; // выбранная привычка в месяце/годе
+  unfinishedFirst: boolean;
+  motion: boolean;
+  haptics: boolean;
 }
-export const DEFAULTS: Settings = { theme: "system", accent: "blue", density: "comfortable", style: "classic", layout: "calendar", mode: "day", sel: 0 };
+export const DEFAULTS: Settings = {
+  theme: "system", accent: "blue", density: "comfortable", style: "classic",
+  layout: "calendar", mode: "day", sel: 0, unfinishedFirst: true, motion: true, haptics: true,
+};
 const KEY = "hb-settings";
 let cur: Settings = DEFAULTS;
 let loaded = false;
@@ -27,7 +33,9 @@ export function applySettings(s: Settings) {
   r.dataset.accent = s.accent;
   r.dataset.density = s.density;
   r.dataset.style = s.style;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? (s.style === "neon" ? "#07060f" : "#000000") : "#f2f2f7");
+  r.dataset.motion = s.motion ? "on" : "off";
+  const background = getComputedStyle(r).getPropertyValue("--bg").trim();
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", background);
 }
 export function updateSettings(p: Partial<Settings>) {
   cur = { ...getSnapshot(), ...p };
@@ -49,4 +57,4 @@ function subscribe(f: () => void) {
 export const useSettings = () => useSyncExternalStore(subscribe, getSnapshot, () => DEFAULTS);
 
 /** Скрипт для <head>: применяет тему до первой отрисовки, чтобы не было вспышки. */
-export const THEME_SCRIPT = `try{var s=JSON.parse(localStorage.getItem("${KEY}")||"{}"),r=document.documentElement,t=s.theme||"system",d=s.style==="neon"||t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);r.dataset.theme=d?"dark":"light";r.dataset.accent=s.accent||"blue";r.dataset.density=s.density||"comfortable";r.dataset.style=s.style||"classic"}catch(e){}`;
+export const THEME_SCRIPT = `try{var s=JSON.parse(localStorage.getItem("${KEY}")||"{}"),r=document.documentElement,t=s.theme||"system",d=s.style==="neon"||t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);r.dataset.theme=d?"dark":"light";r.dataset.accent=s.accent||"blue";r.dataset.density=s.density||"comfortable";r.dataset.style=s.style||"classic";r.dataset.motion=s.motion===false?"off":"on"}catch(e){}`;

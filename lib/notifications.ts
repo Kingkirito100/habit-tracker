@@ -31,24 +31,14 @@ export async function subscribePush() {
 /** Вызывать только по действию пользователя. */
 export async function enableNotifications() {
   const p = await Notification.requestPermission();
+  window.dispatchEvent(new Event("hb:notifications"));
   if (p === "granted") await subscribePush().catch(() => null);
   return p;
 }
 
-export async function showLocal(title: string, body: string) {
-  const reg = await navigator.serviceWorker?.ready;
-  if (reg) await reg.showNotification(title, { body, icon: "/icons/icon-192.png", tag: title });
-  else new Notification(title, { body });
-}
-
-/** Пока приложение открыто — одно напоминание на привычку в день в заданное время. */
-export function scheduleInApp(items: { name: string; time: string }[]) {
-  const timers = items.map(({ name, time }) => {
-    const [h, m] = time.split(":").map(Number);
-    const at = new Date();
-    at.setHours(h, m, 0, 0);
-    const ms = at.getTime() - Date.now();
-    return ms > 0 ? window.setTimeout(() => showLocal("Пора отметить привычку", name), ms) : 0;
-  });
-  return () => timers.forEach((t) => t && clearTimeout(t));
+export async function showLocal(title: string, body: string, tag: string) {
+  const options = { body, icon: "/icons/icon-192.png", tag };
+  const registration = await navigator.serviceWorker?.getRegistration();
+  if (registration?.active) await registration.showNotification(title, options);
+  else new Notification(title, options);
 }

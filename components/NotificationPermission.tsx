@@ -18,7 +18,7 @@ export function NotificationPermission() {
   return (
     <div className="banner" role="region" aria-label="Напоминания">
       <b className="flex items-center gap-1.5"><Bell size={18} aria-hidden /> Напоминать об отметке?</b>
-      <p className="my-1 text-mute">Один раз в день в удобное время — время задаётся в настройках привычки.</p>
+      <p className="my-1 text-mute">Выбери время и дни в настройках привычки. Локальные напоминания работают, пока приложение открыто.</p>
       <div className="mt-2 flex gap-2">
         <button className="btn pri" onClick={async () => { await enableNotifications(); setState(notifState()); close(); }}>Включить</button>
         <button className="btn" onClick={close}>Не сейчас</button>

@@ -13,7 +13,7 @@ export function TabBar() {
   return (
     <nav className="tabs" aria-label="Разделы">
       {TABS.map(({ href, label, Icon }) => (
-        <Link key={href} href={href} aria-current={(href === "/" ? p === "/" || p.startsWith("/habits") : p.startsWith(href)) ? "page" : undefined}>
+        <Link key={href} href={href} aria-current={(href === "/" ? p === "/" || p === "/quick" || p.startsWith("/habits") : p.startsWith(href)) ? "page" : undefined}>
           <Icon size={22} aria-hidden />{label}
         </Link>
       ))}

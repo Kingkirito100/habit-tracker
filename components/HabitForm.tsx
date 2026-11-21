@@ -1,13 +1,14 @@
 "use client";
-import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { ICONS, HabitIcon } from "./HabitIcon";
 import { Segmented } from "./Segmented";
-import type { Freq, Habit } from "@/lib/db";
+import type { Freq, Habit, HabitReminder } from "@/lib/db";
+import { getReminders, isReminderDay, validReminderTime } from "@/lib/reminders";
 import { DAYS_LABEL, freqLabel } from "@/lib/freq";
 import { PRESETS } from "@/lib/presets";
 
-export type HabitDraft = Pick<Habit, "name" | "icon" | "type" | "target" | "unit" | "reminderTime" | "freq" | "color">;
+export type HabitDraft = Pick<Habit, "name" | "icon" | "type" | "target" | "unit" | "reminderTime" | "reminders" | "freq" | "color">;
 const ACCENT_KEYS = ["blue", "green", "orange", "purple", "pink", "teal"];
 const ACCENT_NAMES: Record<string, string> = { blue: "Синий", green: "Зелёный", orange: "Оранжевый", purple: "Фиолетовый", pink: "Розовый", teal: "Бирюзовый" };
 
@@ -17,7 +18,13 @@ export function HabitForm({ initial, submitLabel, onSubmit }: { initial?: HabitD
   const [type, setType] = useState<"binary" | "count">(initial?.type ?? "binary");
   const [target, setTarget] = useState(String(initial?.target ?? 1));
   const [unit, setUnit] = useState(initial?.unit ?? "");
-  const [time, setTime] = useState(initial?.reminderTime ?? "");
+  const [reminders, setReminders] = useState(() =>
+    (initial ? getReminders(initial) : []).map((reminder, id) => ({ ...reminder, id })),
+  );
+  const nextReminderId = useRef(reminders.length);
+  const updateReminder = (id: number, patch: Partial<HabitReminder>) => {
+    setReminders((items) => items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
   const [kind, setKind] = useState<Freq["kind"]>(initial?.freq?.kind ?? "daily");
   const [times, setTimes] = useState(initial?.freq?.times && initial.freq.times > 0 ? initial.freq.times : 3);
   const [days, setDays] = useState<number[]>(initial?.freq?.days?.length ? initial.freq.days : [0, 2, 4]);
@@ -25,7 +32,16 @@ export function HabitForm({ initial, submitLabel, onSubmit }: { initial?: HabitD
 
   const max = kind === "weekly" ? 6 : 28;
   const freq: Freq = { kind, times: kind === "weekly" || kind === "monthly" ? Math.min(times, max) : 1, days: kind === "days" ? [...days].sort() : [] };
-  const valid = name.trim().length > 0 && (type === "binary" || Number(target) >= 1) && (kind !== "days" || days.length > 0);
+  const hasConflictingReminders = reminders.some((item, index) =>
+    reminders.slice(0, index).some((previous) =>
+      item.time === previous.time &&
+      DAYS_LABEL.some((_, day) => isReminderDay(item, day) && isReminderDay(previous, day)),
+    ),
+  );
+  const goal = Number(target);
+  const valid = name.trim().length > 0 && (type === "binary" || (Number.isSafeInteger(goal) && goal >= 1)) &&
+    (kind !== "days" || days.length > 0) && reminders.every(({ time }) => validReminderTime(time)) &&
+    !hasConflictingReminders;
 
   const applyPreset = (p: (typeof PRESETS)[number]) => {
     setName(p.name); setIcon(p.icon); setType(p.type); setTarget(String(p.target)); setUnit(p.unit ?? "");
@@ -94,10 +110,69 @@ export function HabitForm({ initial, submitLabel, onSubmit }: { initial?: HabitD
           <div className="flex-1"><label htmlFor="un" className="mb-1 block text-mute">Единица</label><input id="un" className="field" value={unit} maxLength={12} onChange={(e) => setUnit(e.target.value)} placeholder="стаканов" /></div>
         </div>
       )}
-      <label htmlFor="tm" className="mb-1 block text-mute">Напоминание (необязательно)</label>
-      <input id="tm" type="time" className="field" value={time} onChange={(e) => setTime(e.target.value)} />
+      <section className="mb-4" aria-labelledby="reminder-heading">
+        <h2 id="reminder-heading">Напоминания</h2>
+        <p className="mb-3 mt-1 text-[15px] text-mute">
+          Работают, пока приложение открыто и уведомления разрешены. Учитывают расписание привычки.
+        </p>
+        {reminders.map((item, index) => (
+          <fieldset className="panel min-w-0" key={item.id}>
+            <legend>Напоминание {index + 1}</legend>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <label className="min-w-0 flex-1">
+                <span className="mb-1 block text-mute">Время</span>
+                <input type="time" className="field !mb-0" value={item.time}
+                  aria-invalid={!validReminderTime(item.time)}
+                  onChange={(e) => updateReminder(item.id, { time: e.target.value })} />
+              </label>
+              <button className="btn self-end" type="button" aria-label={`Удалить напоминание ${index + 1}`}
+                onClick={() => setReminders((items) => items.filter(({ id }) => id !== item.id))}>
+                <Trash2 size={18} aria-hidden />
+              </button>
+            </div>
+            {!validReminderTime(item.time) && <p className="mt-0 text-[15px] text-mute">Укажи время напоминания.</p>}
+            <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label={`Дни напоминания ${index + 1}`}>
+              <button className={`btn !px-3 ${item.days.length === 0 ? "pri" : ""}`} type="button" aria-pressed={item.days.length === 0}
+                onClick={() => updateReminder(item.id, { days: [] })}>Все дни</button>
+              {DAYS_LABEL.map((label, day) => {
+                const selected = item.days.includes(day);
+                return (
+                  <button key={label} type="button" aria-pressed={selected}
+                    className={`btn !px-3 ${selected ? "pri" : ""}`}
+                    onClick={() => updateReminder(item.id, { days: selected ? item.days.filter((n) => n !== day) : [...item.days, day] })}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <label>
+              <span className="mb-1 block text-mute">Сообщение (необязательно)</span>
+              <input className="field !mb-0" maxLength={120} value={item.message ?? ""}
+                placeholder="Например: как насчёт короткой прогулки?"
+                onChange={(e) => updateReminder(item.id, { message: e.target.value })} />
+            </label>
+          </fieldset>
+        ))}
+        {hasConflictingReminders && <p className="text-mute" role="status">В один день время напоминаний не должно совпадать.</p>}
+        <button className="btn inline-flex items-center gap-2" type="button" onClick={() => {
+          const id = nextReminderId.current++;
+          setReminders((items) => [...items, { id, time: "", days: [] }]);
+        }}>
+          <Plus size={18} aria-hidden /> Добавить напоминание
+        </button>
+      </section>
       <button className="btn pri w-full" disabled={!valid} style={{ opacity: valid ? 1 : 0.5 }}
-        onClick={() => onSubmit({ name: name.trim(), icon, type, target: type === "count" ? Number(target) : 1, unit: type === "count" ? unit.trim() : undefined, reminderTime: time || undefined, freq, color })}>
+        onClick={() => onSubmit({
+          name: name.trim(),
+          icon,
+          type,
+          target: type === "count" ? goal : 1,
+          unit: type === "count" ? unit.trim() : undefined,
+          reminderTime: undefined,
+          freq,
+          color,
+          reminders: reminders.map(({ time, days, message }) => ({ time, days, message: message?.trim() || undefined })),
+        })}>
         {submitLabel}
       </button>
     </div>

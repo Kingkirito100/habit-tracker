@@ -1,17 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useData, useToday } from "@/lib/hooks";
 import { updateSettings, useSettings } from "@/lib/settings";
 import { setEntry } from "@/lib/db";
-import { countDone, monthDays, weekDays, yearData } from "@/lib/views";
-import { cellState, isDue, streak } from "@/lib/streak";
+import { countDone, monthDays, shiftAnchor, weekDays, yearData } from "@/lib/views";
+import { cellState, MAX_SKIPS_PER_WEEK, skipsInWeek } from "@/lib/streak";
 import { pd } from "@/lib/dates";
-import { HabitCheckIn } from "@/components/HabitCheckIn";
 import { HabitGrid, Legend } from "@/components/HabitGrid";
-import { HabitCalendar } from "@/components/HabitCalendar";
-import { DayRing } from "@/components/DayRing";
+import { DailyPlan, recordFirstCheckIn } from "@/components/DailyPlan";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { NotificationPermission } from "@/components/NotificationPermission";
 import { WEEKDAYS_SHORT, plural } from "@/lib/dates";
@@ -22,6 +20,8 @@ export default function TodayPage() {
   const today = useToday();
   const s = useSettings();
   const [anchorSel, setAnchor] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
 
   if (!data || !today) return <><h1>Привычки</h1><div className="skel" /><div className="skel" /></>;
   const anchor = anchorSel ?? today;
@@ -29,23 +29,40 @@ export default function TodayPage() {
   const mode = s.mode;
   const sel: Habit | undefined = active.find((h) => h.id === s.sel) ?? active[0];
 
-  const cycle = (h: Habit, d: string) => {
-    const c = cellState(h, maps[h.id], d, today);
-    if (c === "done") setEntry(h.id, d, "skipped");
-    else if (c === "skipped") setEntry(h.id, d, null);
-    else setEntry(h.id, d, "done");
-    if (c !== "done" && c !== "skipped") onFirst();
+  const cycle = async (h: Habit, d: string) => {
+    if (d > today || d < h.createdAt) return;
+    const state = cellState(h, maps[h.id], d, today);
+    if (state === "done" && skipsInWeek(maps[h.id], d) >= MAX_SKIPS_PER_WEEK) {
+      setActionMessage("На этой неделе уже два пропуска. Отметка сохранена.");
+      return;
+    }
+    setActionMessage("");
+    try {
+      const next = state === "done" ? "skipped" : state === "skipped" ? null : "done";
+      await setEntry(h.id, d, next, next === "done" && h.type === "count" ? h.target : undefined);
+      if (next === "done") recordFirstCheckIn();
+    } catch {
+      setActionMessage("Не удалось сохранить отметку.");
+    }
   };
-  const onFirst = () => { try { localStorage.setItem("hb-checkin", "1"); } catch {} window.dispatchEvent(new Event("hb:checkin")); };
 
-  // Swipe между периодами
-  let sx = 0, sy = 0;
   const touch = {
-    onTouchStart: (e: React.TouchEvent) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; },
-    onTouchEnd: (e: React.TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-      if (Math.abs(dx) > 70 && Math.abs(dy) < 40) import("@/lib/views").then((v) => setAnchor(v.shiftAnchor(anchor, mode, dx < 0 ? 1 : -1)));
+    onTouchStart: (event: React.TouchEvent) => {
+      if (event.touches.length !== 1 || (event.target instanceof Element && event.target.closest("input, textarea, select"))) {
+        swipeStart.current = null;
+        return;
+      }
+      swipeStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
     },
+    onTouchEnd: (event: React.TouchEvent) => {
+      const start = swipeStart.current;
+      swipeStart.current = null;
+      if (!start || !event.changedTouches.length) return;
+      const dx = event.changedTouches[0].clientX - start.x;
+      const dy = event.changedTouches[0].clientY - start.y;
+      if (Math.abs(dx) > 70 && Math.abs(dy) < 40) setAnchor(shiftAnchor(anchor, mode, dx < 0 ? 1 : -1));
+    },
+    onTouchCancel: () => { swipeStart.current = null; },
   };
 
   if (!active.length) {
@@ -66,23 +83,8 @@ export default function TodayPage() {
       <NotificationPermission />
       <ViewSwitcher mode={mode} anchor={anchor} today={today} onMode={(m) => updateSettings({ mode: m })} onAnchor={setAnchor} />
 
-      {mode === "day" && (() => {
-        const ids = new Set(active.filter((h) => isDue(h, maps[h.id], anchor)).map((h) => h.id));
-        const done = active.filter((h) => maps[h.id]?.[anchor]?.status === "done");
-        done.forEach((h) => ids.add(h.id));
-        return (
-          <>
-            <DayRing done={done.length} total={ids.size} />
-            {active.map((h) => (
-              <div key={h.id} data-accent={h.color} className="mb-1">
-                <HabitCheckIn habit={h} map={maps[h.id]} date={anchor} today={today} onFirstCheckIn={onFirst} />
-                {s.layout === "calendar" && <HabitCalendar habit={h} map={maps[h.id]} today={today} />}
-              </div>
-            ))}
-            <p className="text-[15px] text-mute">Нажми на карточку, чтобы отметить. Пропуск — до 2 раз в неделю, серия не сгорает. Нажми на календарь, чтобы открыть подробности.</p>
-          </>
-        );
-      })()}
+      {actionMessage && mode !== "day" && <p className="banner" role="status">{actionMessage}</p>}
+      {mode === "day" && <DailyPlan key={anchor} habits={active} maps={maps} date={anchor} today={today} />}
 
       {mode === "week" && (
         <>

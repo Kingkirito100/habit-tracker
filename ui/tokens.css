@@ -46,3 +46,21 @@
 :root[data-style="neon"] [data-accent="purple"], :root[data-style="neon"][data-accent="purple"] { --ok: #9d6bff; }
 :root[data-style="neon"] [data-accent="pink"], :root[data-style="neon"][data-accent="pink"] { --ok: #ff2bd6; }
 :root[data-style="neon"] [data-accent="teal"], :root[data-style="neon"][data-accent="teal"] { --ok: #00ffa3; }
+
+:root[data-style="paper"] {
+  --bg: #f4eddf;
+  --surf: #fffaf0;
+  --ink: #332719;
+  --mute: #695745;
+  --line: #d8c9ae;
+  --r-card: 14px;
+  --r-ctl: 10px;
+}
+:root[data-style="paper"][data-theme="dark"] {
+  --bg: #211a14;
+  --surf: #30261d;
+  --ink: #f9ecda;
+  --mute: #cdbba2;
+  --line: #514030;
+}
+:root[data-style="paper"] :is(h1, h2) { font-family: Georgia, "Times New Roman", serif; }
