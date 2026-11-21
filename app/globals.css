@@ -136,3 +136,15 @@ body { background-image: var(--bg-img); background-attachment: fixed; }
 .week-cell[data-state="done"] { background: var(--ok); border-color: var(--ok); color: var(--okt); }
 .week-cell[data-state="skipped"] { background: var(--skipbg); border: 1px dashed var(--skip); color: var(--skip); }
 .week-cell[data-state="future"], .week-cell[data-state="off"] { border-style: dotted; }
+
+/* Keep controls readable on narrow phones and avoid fixed-background repainting in WebKit. */
+@media (max-width: 480px) {
+  body { background-attachment: scroll; }
+  .shell { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  .seg { flex-wrap: wrap; }
+  .seg button { flex: 1 1 22%; min-width: 65px; padding: 4px; line-height: 1.2; }
+  .row { flex-wrap: wrap; }
+  .row > span { flex-basis: 100%; }
+  .tabs { padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); z-index: 20; }
+  .fab { right: max(16px, env(safe-area-inset-right)); z-index: 21; }
+}
